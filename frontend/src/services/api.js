@@ -1,6 +1,21 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8000';
+// Tự động phát hiện API URL dựa trên environment
+// Nếu frontend chạy trên IP khác localhost, backend cũng nên chạy trên IP đó
+const getApiBaseUrl = () => {
+  // Kiểm tra nếu đang chạy trên IP khác localhost
+  const hostname = window.location.hostname;
+  
+  // Nếu là localhost hoặc 127.0.0.1, dùng localhost:8000
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'http://localhost:8000';
+  }
+  
+  // Nếu là IP khác (ví dụ: 192.168.1.21), dùng cùng IP với port 8000
+  return `http://${hostname}:8000`;
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 const api = axios.create({
   baseURL: API_BASE_URL,
