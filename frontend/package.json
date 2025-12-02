@@ -1,7 +1,7 @@
 {
-  "name": "animal-detection-frontend",
+  "name": "object-detection-frontend",
   "version": "1.0.0",
-  "description": "Frontend for Animal Detection System",
+  "description": "Frontend for Object Detection System",
   "private": true,
   "dependencies": {
     "react": "^18.2.0",

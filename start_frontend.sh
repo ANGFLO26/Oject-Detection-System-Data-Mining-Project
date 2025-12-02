@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script để chạy frontend
-echo "🚀 Starting Animal Detection Frontend..."
+echo "🚀 Starting Object Detection Frontend..."
 echo ""
 
 cd frontend

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script để chạy backend
-echo "🚀 Starting Animal Detection Backend..."
+echo "🚀 Starting Object Detection Backend..."
 echo ""
 
 cd backend
@@ -16,10 +16,17 @@ fi
 echo "🔧 Activating virtual environment..."
 source venv/bin/activate
 
-# Cài đặt dependencies nếu chưa có
-if [ ! -f "venv/bin/uvicorn" ]; then
-    echo "📥 Installing dependencies..."
-    pip install -r requirements.txt
+# Kiểm tra dependencies
+if [ ! -f "venv/bin/uvicorn" ] || ! python3 -c "from deepsort import DeepSortTracker" 2>/dev/null; then
+    echo "⚠️  Dependencies not fully installed!"
+    echo ""
+    echo "📥 Please install dependencies first:"
+    echo "   Option 1 (Quick - CPU only): ./quick_install.sh"
+    echo "   Option 2 (Full - GPU support): ./install_gpu.sh"
+    echo ""
+    echo "   Or manually: pip install -r requirements.txt"
+    echo ""
+    exit 1
 fi
 
 # Chạy backend

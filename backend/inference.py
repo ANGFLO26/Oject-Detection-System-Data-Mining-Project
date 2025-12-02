@@ -1,5 +1,5 @@
 """
-AnimalDetector Class - Wrapper cho YOLO model
+ObjectDetector Class - Wrapper cho YOLO model
 Copy từ inference_detection.py với một số điều chỉnh cho API
 """
 
@@ -12,7 +12,7 @@ from collections import Counter
 import os
 
 
-class AnimalDetector:
+class ObjectDetector:
     def __init__(self, model_path, conf_threshold=0.25, iou_threshold=0.45):
         """
         model_path: đường dẫn tới model đã train
@@ -35,7 +35,7 @@ class AnimalDetector:
 
     def detect_image(self, image_path, save_path=None, show=False):
         """
-        Nhận diện động vật trong một ảnh
+        Nhận diện đối tượng trong một ảnh
 
         Parameters:
         - image_path: đường dẫn tới ảnh cần nhận diện
@@ -50,23 +50,45 @@ class AnimalDetector:
         if not Path(image_path).exists():
             return None, None
 
-        # Chạy inference
-        results = self.model.predict(
-            source=image_path,
-            conf=self.conf_threshold,
-            iou=self.iou_threshold,
-            save=False,
-            verbose=False
-        )
+        # Chạy inference với error handling
+        try:
+            results = self.model.predict(
+                source=image_path,
+                conf=self.conf_threshold,
+                iou=self.iou_threshold,
+                save=False,
+                verbose=False
+            )
 
-        # Lấy kết quả đầu tiên
-        result = results[0]
+            # Kiểm tra kết quả
+            if not results or len(results) == 0:
+                return None, None
 
-        # Vẽ bounding boxes
-        img_with_boxes = result.plot()
+            # Lấy kết quả đầu tiên
+            result = results[0]
 
-        # Chuyển từ BGR sang RGB cho web
-        img_rgb = cv2.cvtColor(img_with_boxes, cv2.COLOR_BGR2RGB)
+            # Kiểm tra result hợp lệ
+            if result is None:
+                return None, None
+
+            # Vẽ bounding boxes
+            try:
+                img_with_boxes = result.plot()
+            except Exception as e:
+                print(f"Error plotting result: {e}")
+                # Nếu không vẽ được, đọc ảnh gốc
+                img_bgr = cv2.imread(str(image_path))
+                if img_bgr is None:
+                    return None, None
+                img_with_boxes = img_bgr
+
+            # Chuyển từ BGR sang RGB cho web
+            img_rgb = cv2.cvtColor(img_with_boxes, cv2.COLOR_BGR2RGB)
+        except Exception as e:
+            print(f"Error in detect_image: {e}")
+            import traceback
+            traceback.print_exc()
+            return None, None
 
         # Lưu ảnh nếu cần
         if save_path:
