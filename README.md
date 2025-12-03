@@ -4,13 +4,14 @@ Hệ thống nhận diện đối tượng sử dụng YOLOv8 với giao diện 
 
 ## 📋 Mô Tả
 
-Ứng dụng web cho phép người dùng upload ảnh hoặc sử dụng camera để nhận diện đối tượng sử dụng mô hình YOLOv8n đã được training. Hệ thống hỗ trợ 80 lớp đối tượng khác nhau, hiển thị kết quả với bounding boxes, thống kê chi tiết và cho phép tùy chỉnh các tham số detection. Hệ thống còn hỗ trợ Text-to-Speech (TTS) bằng tiếng Việt để hỗ trợ người dùng khiếm thị.
+Ứng dụng web cho phép người dùng upload ảnh hoặc sử dụng camera để nhận diện đối tượng sử dụng mô hình YOLOv8s đã được training. Hệ thống hỗ trợ 80 lớp đối tượng khác nhau, hiển thị kết quả với bounding boxes, thống kê chi tiết và cho phép tùy chỉnh các tham số detection. Hệ thống còn hỗ trợ Text-to-Speech (TTS) bằng tiếng Việt để hỗ trợ người dùng khiếm thị.
 
 **Kết quả:**
-- mAP50: **0.7565** (75.65%)
-- Precision: **0.7140**
-- Recall: **0.7469**
-- Cải thiện **+9.2%** so với baseline
+- mAP50: **0.6601** (66.01%)
+- Precision: **0.7283** (72.83%)
+- Recall: **0.5933** (59.33%)
+- F1-Score: **0.6540** (65.40%)
+- *Lưu ý: Kết quả thấp hơn baseline (69.25%) khoảng 4.7%, được phân tích chi tiết trong báo cáo*
 
 ## 🏗️ Cấu Trúc Dự Án
 
@@ -29,9 +30,8 @@ Animal-Detection-System-Data-Mining-Project/  # Note: Tên folder (có thể gi�
 ├── code_train_model/             # Training scripts
 │   ├── data_preparation_pro.py   # Data preparation pipeline
 │   └── model_training_optimized.py
-├── best.pt                       # Trained YOLOv8n model
-├── doc/                          # Documentation
-│   └── BAO_CAO.md                # Báo cáo đồ án
+├── best.pt                       # Trained YOLOv8s model
+├── BAO_CAO.md                    # Báo cáo đồ án (ở root)
 ├── start_backend.sh              # Script chạy backend
 └── start_frontend.sh             # Script chạy frontend
 ```
@@ -183,28 +183,33 @@ So sánh kết quả với các confidence threshold khác nhau
 
 ### Metrics
 
-| Metric | Giá trị |
-|--------|---------|
-| mAP50 | 0.7565 (75.65%) |
-| mAP50-95 | 0.6322 (63.22%) |
-| Precision | 0.7140 |
-| Recall | 0.7469 |
-| F1-Score | 0.7301 |
+| Metric | Giá trị | Mô tả |
+|--------|---------|-------|
+| mAP50 | 0.6601 (66.01%) | Mean Average Precision với IoU=0.5 |
+| mAP50-95 | 0.3895 (38.95%) | Mean Average Precision với IoU từ 0.5-0.95 |
+| Precision | 0.7283 (72.83%) | Tỷ lệ detections đúng |
+| Recall | 0.5933 (59.33%) | Tỷ lệ ground truth được detect |
+| F1-Score | 0.6540 (65.40%) | Harmonic mean của Precision và Recall |
 
 ### Training Details
 
-- **Model**: YOLOv8n (nano)
-- **Dataset**: 28,184 samples (80 classes)
-- **Train/Val**: 22,518 / 5,666 (80/20)
-- **Epochs**: 100
-- **Training time**: 8 giờ 21 phút
-- **Hardware**: Tesla P100 GPU (16GB)
+- **Model**: YOLOv8s (small variant)
+- **Parameters**: 11.2M
+- **Dataset**: 19,247 images (80 classes, balanced)
+- **Train/Val**: 10,030 / 9,217
+- **Target per class**: ~250 images
+- **Epochs**: 120
+- **Training time**: ~8 giờ (7 giờ 45 phút)
+- **Hardware**: Tesla P100-PCIE-16GB (17.06 GB VRAM)
+- **Batch size**: 28
+- **Workers**: 4 (auto-configured)
 
-### Improvement
+### Comparison with Baseline
 
-- **Baseline** (imbalanced data): mAP50 = 0.6925
-- **After balancing**: mAP50 = 0.7565
-- **Improvement**: **+9.2%** 🎉
+- **Baseline** (imbalanced data, 82k images): mAP50 = 0.6925 (69.25%)
+- **Our method** (balanced data, 10k images): mAP50 = 0.6601 (66.01%)
+- **Change**: **-4.7%** (thấp hơn baseline)
+- **Phân tích**: Kết quả thấp hơn baseline có thể do model quá lớn (11.2M params) so với dataset size (10k images), dẫn đến overfitting tiềm ẩn. Chi tiết phân tích xem trong báo cáo.
 
 ## 🧪 Hướng Dẫn Test (Tóm tắt)
 
@@ -241,7 +246,7 @@ Mở `http://localhost:3000` để sử dụng.
 
 ## 📚 Tài Liệu
 
-- **Báo cáo**: Xem file `doc/BAO_CAO.md` để biết chi tiết về dự án
+- **Báo cáo**: Xem file `BAO_CAO.md` (ở thư mục gốc) để biết chi tiết về dự án
 
 ## 🐛 Troubleshooting
 

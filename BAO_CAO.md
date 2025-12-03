@@ -28,15 +28,13 @@
 
 Hệ thống nhận diện đối tượng real-time là một ứng dụng quan trọng trong nhiều lĩnh vực như giám sát an ninh, hỗ trợ người khiếm thị, và tự động hóa. Tuy nhiên, việc xây dựng một hệ thống hiệu quả đòi hỏi giải quyết nhiều thách thức, đặc biệt là vấn đề mất cân bằng dữ liệu (data imbalance) trong các dataset phổ biến như COCO.
 
-Nghiên cứu này trình bày một pipeline hoàn chỉnh để xử lý và cân bằng dataset COCO 2014, từ 82,081 ảnh training ban đầu xuống còn 10,030 ảnh được chọn lọc thông qua thuật toán smart sampling dựa trên quality score. Dataset sau xử lý đạt được sự cân bằng với khoảng 250 ảnh cho mỗi class trong 80 classes, giảm tỷ lệ imbalance từ 321:1 xuống còn ~1:1.
+Nghiên cứu này trình bày một pipeline hoàn chỉnh để xử lý và cân bằng dataset COCO 2014, từ 82,081 ảnh training ban đầu xuống còn 10,030 ảnh được chọn lọc thông qua thuật toán smart sampling dựa trên quality score, giảm tỷ lệ imbalance từ 321:1 xuống còn ~1:1.
 
-Hệ thống được xây dựng sử dụng YOLOv8s (Small variant) với 11.2 triệu tham số và 28.8 GFLOPs, được huấn luyện trên GPU Tesla P100 với 17GB VRAM trong 120 epochs, mất khoảng 8 giờ. Mô hình được tối ưu hóa đặc biệt cho GPU P100 với batch size 28, 20 workers cho data loading, và Mixed Precision Training (AMP) để tăng tốc độ huấn luyện.
+Hệ thống được xây dựng sử dụng YOLOv8s (11.2M parameters), được huấn luyện trên GPU Tesla P100 (17GB VRAM) trong 120 epochs (~8 giờ) với batch size 28, 4 workers, và Mixed Precision Training (AMP).
 
-Kết quả thực nghiệm cho thấy mô hình đạt được mAP50 = 66.01%, Precision = 72.83%, Recall = 59.33%, và F1-Score = 65.40% trên validation set gồm 9,217 ảnh. Mặc dù kết quả này thấp hơn baseline (69.25%) khoảng 4.7%, nghiên cứu đã phân tích và đưa ra các nguyên nhân có thể như model quá lớn so với dataset size, dẫn đến overfitting tiềm ẩn.
+Kết quả thực nghiệm cho thấy mô hình đạt được mAP50 = 66.01%, Precision = 72.83%, Recall = 59.33%, và F1-Score = 65.40% trên validation set (9,217 ảnh). Mặc dù kết quả này thấp hơn baseline (69.25%) khoảng 4.7%, nghiên cứu đã phân tích và đưa ra các nguyên nhân có thể như model quá lớn so với dataset size.
 
-Hệ thống web application được phát triển với kiến trúc Frontend (React) và Backend (FastAPI), tích hợp DeepSORT tracking để duy trì track IDs ổn định qua các frames. Đặc biệt, hệ thống hỗ trợ Text-to-Speech bằng tiếng Việt, gom kết quả theo lớp (ví dụ: "Phát hiện 2 xe tải. Phát hiện 1 người"), hữu ích cho người khiếm thị.
-
-Nghiên cứu đóng góp một pipeline xử lý dữ liệu thông minh với quality scoring, phương pháp tối ưu hóa training cho GPU P100, và một hệ thống ứng dụng hoàn chỉnh với tính năng accessibility. Kết quả nghiên cứu cung cấp insights quan trọng về mối quan hệ giữa model size và dataset size, gợi ý rằng YOLOv8n (nano variant) có thể phù hợp hơn cho dataset 10k ảnh.
+Hệ thống web application được phát triển với kiến trúc Frontend (React) và Backend (FastAPI), tích hợp DeepSORT tracking và Text-to-Speech bằng tiếng Việt để hỗ trợ người khiếm thị. Nghiên cứu đóng góp một pipeline xử lý dữ liệu thông minh, phương pháp tối ưu hóa training cho GPU P100, và insights quan trọng về mối quan hệ giữa model size và dataset size.
 
 **Từ khóa:** Object Detection, YOLOv8, DeepSORT, Data Imbalance, Smart Sampling, Real-time Tracking, Web Application
 
@@ -50,7 +48,7 @@ Nhận diện đối tượng (Object Detection) là một trong những bài to
 
 Trong những năm gần đây, các mô hình deep learning, đặc biệt là YOLO (You Only Look Once) series, đã đạt được những thành tựu đáng kể trong việc nhận diện đối tượng real-time. YOLOv8, phiên bản mới nhất của series này, được phát triển bởi Ultralytics, mang lại hiệu suất cao với tốc độ xử lý nhanh, phù hợp cho các ứng dụng thời gian thực.
 
-Tuy nhiên, việc huấn luyện các mô hình object detection hiệu quả đòi hỏi dataset chất lượng cao và cân bằng. Dataset COCO (Common Objects in Context) là một trong những dataset phổ biến nhất, nhưng nó có vấn đề mất cân bằng nghiêm trọng giữa các classes. Ví dụ, class "person" có hơn 7,000 ảnh trong khi class "toaster" chỉ có khoảng 25 ảnh, tạo ra tỷ lệ imbalance lên đến 321:1. Sự mất cân bằng này có thể dẫn đến việc model học tốt các classes phổ biến nhưng kém hiệu quả với các classes hiếm.
+Tuy nhiên, việc huấn luyện các mô hình object detection hiệu quả đòi hỏi dataset chất lượng cao và cân bằng. Dataset COCO (Common Objects in Context) là một trong những dataset phổ biến nhất, nhưng nó có vấn đề mất cân bằng nghiêm trọng giữa các classes (tỷ lệ imbalance lên đến 321:1), có thể dẫn đến việc model học tốt các classes phổ biến nhưng kém hiệu quả với các classes hiếm. Chi tiết về vấn đề imbalance và cách xử lý được trình bày trong [Chương 6](#6-chuẩn-bị-dữ-liệu).
 
 Ngoài ra, việc xây dựng một hệ thống ứng dụng hoàn chỉnh với khả năng tracking đối tượng qua nhiều frames và hỗ trợ người dùng khiếm thị là một thách thức kỹ thuật quan trọng. DeepSORT (Deep Simple Online and Realtime Tracking) là một giải pháp phổ biến cho bài toán multi-object tracking, kết hợp Kalman Filter và feature matching để duy trì track IDs ổn định.
 
@@ -58,9 +56,9 @@ Ngoài ra, việc xây dựng một hệ thống ứng dụng hoàn chỉnh vớ
 
 Nghiên cứu này đặt ra các mục tiêu chính sau:
 
-1. **Xây dựng pipeline xử lý dữ liệu thông minh**: Phát triển một hệ thống tự động để chuyển đổi dataset COCO 2014 từ trạng thái mất cân bằng (321:1) sang trạng thái cân bằng (~1:1) thông qua thuật toán smart sampling dựa trên quality score.
+1. **Xây dựng pipeline xử lý dữ liệu thông minh**: Phát triển một hệ thống tự động để chuyển đổi dataset COCO 2014 từ trạng thái mất cân bằng sang trạng thái cân bằng thông qua thuật toán smart sampling dựa trên quality score (chi tiết trong [Chương 6](#6-chuẩn-bị-dữ-liệu)).
 
-2. **Huấn luyện mô hình YOLOv8 hiệu quả**: Tối ưu hóa quá trình training YOLOv8s trên balanced dataset, đặc biệt tối ưu cho GPU Tesla P100 với 17GB VRAM, đạt được mAP50 mục tiêu kỳ vọng từ 0.78-0.83 (mục tiêu tối thiểu ≥ 0.75). *Lưu ý: Kết quả thực tế đạt mAP50 = 0.6601, thấp hơn mục tiêu kỳ vọng, sẽ được phân tích chi tiết trong phần đánh giá.*
+2. **Huấn luyện mô hình YOLOv8 hiệu quả**: Tối ưu hóa quá trình training YOLOv8s trên balanced dataset, đặc biệt tối ưu cho GPU Tesla P100, đạt được mAP50 mục tiêu kỳ vọng từ 0.78-0.83 (mục tiêu tối thiểu ≥ 0.75). *Lưu ý: Kết quả thực tế đạt mAP50 = 0.6601, thấp hơn mục tiêu kỳ vọng, được phân tích chi tiết trong [Chương 8](#8-kết-quả) và [Chương 10](#10-đánh-giá--thảo-luận).*
 
 3. **Xây dựng hệ thống web application**: Phát triển một ứng dụng web hoàn chỉnh với khả năng:
    - Nhận diện đối tượng real-time từ camera
@@ -74,34 +72,17 @@ Nghiên cứu này đặt ra các mục tiêu chính sau:
 
 Nghiên cứu này tập trung vào:
 
-- **Dataset**: COCO 2014 với 80 classes, xử lý từ 82,081 training images xuống còn 10,030 images balanced
-- **Model**: YOLOv8s (Small variant) với 11.2M parameters
+- **Dataset**: COCO 2014 với 80 classes, xử lý từ 82,081 training images xuống còn 10,030 images balanced (chi tiết trong [Chương 6](#6-chuẩn-bị-dữ-liệu))
+- **Model**: YOLOv8s (Small variant) với 11.2M parameters (chi tiết trong [Chương 3](#31-object-detection-và-yolo) và [Chương 7](#7-huấn-luyện-mô-hình))
 - **Hardware**: GPU Tesla P100-PCIE-16GB (17.06 GB VRAM)
-- **Tracking**: DeepSORT với Kalman Filter và histogram-based feature extraction
-- **Application**: Web application với React frontend và FastAPI backend
+- **Tracking**: DeepSORT với Kalman Filter và histogram-based feature extraction (chi tiết trong [Chương 3](#32-multi-object-tracking-với-deepsort))
+- **Application**: Web application với React frontend và FastAPI backend (chi tiết trong [Chương 5](#5-thiết-kế-hệ-thống) và [Chương 9](#9-demo--ứng-dụng))
 
 Nghiên cứu không bao gồm:
 - Các mô hình object detection khác ngoài YOLOv8
 - Các phương pháp tracking khác ngoài DeepSORT
 - Mobile application hoặc edge deployment
 - Video processing batch
-
-### 2.4. Cấu trúc báo cáo
-
-Báo cáo được tổ chức thành 12 chương chính:
-
-- **Chương 1**: Tóm tắt nghiên cứu
-- **Chương 2**: Giới thiệu đề tài (chương này)
-- **Chương 3**: Cơ sở lý thuyết về YOLOv8, DeepSORT, và các metrics đánh giá
-- **Chương 4**: Phân tích yêu cầu chức năng và phi chức năng
-- **Chương 5**: Thiết kế kiến trúc hệ thống và lựa chọn model
-- **Chương 6**: Chi tiết pipeline xử lý dữ liệu và smart sampling
-- **Chương 7**: Quá trình huấn luyện mô hình và tối ưu hóa cho P100
-- **Chương 8**: Kết quả thực nghiệm và phân tích
-- **Chương 9**: Demo hệ thống và các tính năng
-- **Chương 10**: Đánh giá, thảo luận và lessons learned
-- **Chương 11**: Kết luận và hướng phát triển
-- **Chương 12**: Tài liệu tham khảo
 
 ---
 
@@ -175,10 +156,7 @@ YOLOv8 có 5 variants với kích thước và độ phức tạp khác nhau:
 - **Trade-off**: YOLOv8s có 11.2M parameters, lớn hơn YOLOv8n (3.2M) nhưng nhỏ hơn YOLOv8m (25.9M)
 - **Kết quả thực tế**: mAP50 = 0.6601, thấp hơn kỳ vọng, có thể do model quá lớn so với dataset size (10k images)
 
-**So sánh với YOLOv8n:**
-- YOLOv8n phù hợp hơn cho dataset nhỏ (< 20k images)
-- YOLOv8s có thể dẫn đến overfitting với dataset 10k images
-- Đề xuất: Thử YOLOv8n trong tương lai để so sánh
+**So sánh với YOLOv8n:** YOLOv8n (3.2M params) phù hợp hơn cho dataset nhỏ (< 20k images), trong khi YOLOv8s có thể dẫn đến overfitting với dataset 10k images. *Phân tích chi tiết và đề xuất được trình bày trong [Chương 5.2.2](#522-so-sánh-yolov8n-vs-yolov8s) và [Chương 10.3.2](#1032-model-size-comparison).*
 
 ### 3.2. Multi-Object Tracking với DeepSORT
 
@@ -228,10 +206,8 @@ COCO (Common Objects in Context) là một trong những dataset phổ biến nh
 - **Format**: YOLO format với normalized coordinates (x_center, y_center, width, height)
 
 **Vấn đề Imbalance:**
-- Class "person": 7,418 images
-- Class "toaster": 25 images
-- Tỷ lệ imbalance: 321:1
-- Ảnh hưởng: Model học tốt classes phổ biến, kém với classes hiếm
+- Dataset COCO 2014 có vấn đề mất cân bằng nghiêm trọng giữa các classes (tỷ lệ imbalance lên đến 321:1)
+- Chi tiết về phân bố classes và quá trình xử lý được trình bày trong [Chương 6](#6-chuẩn-bị-dữ-liệu)
 
 #### 3.3.2. Evaluation Metrics
 
@@ -477,10 +453,7 @@ Dataset sau xử lý có:
 
 #### 5.2.4. Đề xuất cải thiện
 
-Dựa trên kết quả, đề xuất:
-1. **Thử YOLOv8n**: Với dataset 10k images, YOLOv8n có thể phù hợp hơn
-2. **Fine-tuning**: Nếu dùng YOLOv8s, cần điều chỉnh hyperparameters (LR, augmentation, regularization)
-3. **Data augmentation mạnh hơn**: Tăng augmentation để tăng effective dataset size
+Dựa trên kết quả thực tế (mAP50 = 0.6601 thấp hơn kỳ vọng), các đề xuất chính bao gồm: (1) Thử YOLOv8n phù hợp hơn với dataset 10k images, (2) Fine-tuning hyperparameters, và (3) Tăng data augmentation. *Chi tiết được trình bày trong [Chương 11.4](#114-hướng-phát-triển).*
 
 ### 5.3. Backend Design
 
@@ -501,6 +474,15 @@ Dựa trên kết quả, đề xuất:
 - Input: Multipart form data (file, conf_threshold, iou_threshold, session_id)
 - Output: JSON với tracks, image_base64, statistics, session_id
 - Timeout: 30 seconds
+
+**POST /api/detect-batch**
+- Nhận diện nhiều ảnh cùng lúc (batch processing)
+- Input: Multipart form data (files: List[UploadFile], conf_threshold, iou_threshold)
+- Output: JSON với results (danh sách kết quả cho mỗi ảnh), summary (thống kê tổng hợp)
+- Timeout: 30 seconds per image (không có timeout tổng cho batch)
+- Giới hạn: Tối đa 20 ảnh mỗi batch
+- Use case: Xử lý hàng loạt ảnh, phân tích dataset, batch testing
+- Lưu ý: Endpoint này được giữ lại để tương thích, nhưng frontend hiện tại không sử dụng
 
 **POST /api/reset-tracking-session**
 - Reset tracking session (xóa tất cả tracks)
@@ -693,27 +675,52 @@ Pipeline được thiết kế thành 6 bước chính:
 
 **Thuật toán Quality Score:**
 
-Mỗi ảnh được đánh giá bằng quality score dựa trên:
+Mỗi ảnh được đánh giá bằng quality score dựa trên 4 tiêu chí:
 
-1. **Số classes trong ảnh** (weight: 3.0)
+1. **Số classes trong ảnh** (weight: 3.5)
    - Ảnh chứa nhiều classes → score cao hơn
-   - Lý do: Ảnh đa dạng giúp model học tốt hơn
+   - Công thức: `số_classes_trong_ảnh × 3.5`
+   - Lý do: Ảnh đa dạng giúp model học tốt hơn, tăng khả năng generalization
 
-2. **Bbox area** (weight: 2.0 hoặc 1.0)
-   - Area 0.05-0.6: +2.0 (optimal size)
-   - Area 0.01-0.05: +1.0 (small but acceptable)
-   - Area <0.01 hoặc >0.6: +0.0 (too small hoặc too large)
-   - Lý do: Bbox quá nhỏ hoặc quá lớn khó detect
+2. **Bbox area** (weight: 2.5, 1.5, hoặc 1.0)
+   - Area 0.05-0.6: +2.5 (optimal size - tăng từ 2.0)
+   - Area 0.01-0.05: +1.5 (small but acceptable - tăng từ 1.0)
+   - Area 0.6-0.8: +1.0 (large but acceptable - mới thêm)
+   - Area <0.01 hoặc >0.8: +0.0 (too small hoặc too large)
+   - Lý do: Bbox có kích thước phù hợp (không quá nhỏ/lớn) dễ detect và học tốt hơn
 
-3. **Vị trí bbox** (weight: 1.0)
-   - Center (x, y) trong khoảng [0.2, 0.8]: +1.0
-   - Lý do: Bbox ở trung tâm thường dễ detect hơn
+3. **Vị trí bbox** (weight: 1.5)
+   - Center (x, y) trong khoảng [0.2, 0.8]: +1.5 (tăng từ 1.0)
+   - Ngoài khoảng này: +0.0
+   - Lý do: Bbox ở vị trí trung tâm thường dễ detect hơn, ít bị cắt xén ở biên ảnh
+
+4. **Aspect ratio** (weight: 0.5) - **MỚI THÊM**
+   - Aspect ratio trong khoảng [1.0, 3.0]: +0.5
+   - Aspect ratio <1.0 hoặc >3.0: +0.0
+   - Công thức: `aspect_ratio = max(width, height) / min(width, height)`
+   - Lý do: Bbox có tỷ lệ hợp lý (không quá dẹt hoặc quá dài) phản ánh đối tượng tự nhiên hơn, dễ học hơn
 
 **Công thức tính Quality Score:**
-- score = (số_classes_trong_ảnh × 3.0) + bbox_area_score + bbox_position_score
-- Trong đó:
-  - bbox_area_score: +2.0 nếu area 0.05-0.6, +1.0 nếu area 0.01-0.05, +0.0 nếu khác
-  - bbox_position_score: +1.0 nếu center (x,y) trong [0.2, 0.8], +0.0 nếu khác
+```
+score = (số_classes_trong_ảnh × 3.5) 
+      + bbox_area_score 
+      + bbox_position_score 
+      + bbox_aspect_ratio_score
+```
+
+Trong đó:
+- **số_classes_trong_ảnh**: Số lượng classes khác nhau có trong ảnh
+- **bbox_area_score**: 
+  - +2.5 nếu area ∈ [0.05, 0.6]
+  - +1.5 nếu area ∈ [0.01, 0.05)
+  - +1.0 nếu area ∈ (0.6, 0.8]
+  - +0.0 nếu khác
+- **bbox_position_score**: 
+  - +1.5 nếu center (x, y) ∈ [0.2, 0.8] × [0.2, 0.8]
+  - +0.0 nếu khác
+- **bbox_aspect_ratio_score**: 
+  - +0.5 nếu aspect_ratio ∈ [1.0, 3.0]
+  - +0.0 nếu khác
 
 **Quy trình:**
 1. Với mỗi class đủ (≥250 ảnh):
@@ -769,14 +776,7 @@ Mỗi ảnh được đánh giá bằng quality score dựa trên:
 
 #### 6.2.5. Bước 5: Tạo Config
 
-**Mục tiêu**: Tạo file `data.yaml` cho YOLO format
-
-**Nội dung file data.yaml:**
-- path: Đường dẫn đến dataset root
-- train: Thư mục chứa training images (images/train)
-- val: Thư mục chứa validation images (images/val)
-- nc: Số lượng classes (80)
-- names: Dictionary mapping class ID sang class name (0: person, 1: bicycle, 2: car, ...)
+**Mục tiêu**: Tạo file `data.yaml` cho YOLO format với cấu trúc chuẩn bao gồm: đường dẫn dataset, thư mục train/val, số classes (80), và dictionary mapping class ID sang class name.
 
 #### 6.2.6. Bước 6: Tổng kết
 
@@ -873,8 +873,9 @@ Hệ thống tự động phát hiện GPU và tối ưu hóa:
 - **Trade-off**: Batch nhỏ hơn → training chậm hơn nhưng ổn định hơn
 
 **Workers:**
-- **Data Loading**: 20 workers (tối đa)
-- **Lý do**: Tăng tốc độ load data, giảm bottleneck
+- **Data Loading**: 4 workers (tự động cấu hình bởi YOLO)
+- **Lý do**: Cân bằng giữa tốc độ load data và memory usage
+- **Lưu ý**: Số workers được YOLO tự động điều chỉnh dựa trên hệ thống, có thể thay đổi tùy theo cấu hình
 
 **Cache:**
 - **Image Cache**: Enabled
@@ -1007,47 +1008,20 @@ Hệ thống tự động phát hiện GPU và tối ưu hóa:
 
 **Save Strategy:**
 - **Save Period**: 10 epochs
-- **Best Model**: Tự động save model có mAP50 cao nhất
-- **Last Model**: Save model cuối cùng
-- **Location**: `runs/detect/animal_balanced/weights/`
-
-**Files Saved:**
-- `best.pt`: Best model (highest mAP50)
-- `last.pt`: Last epoch model
-- `results.png`: Training curves
-- `confusion_matrix.png`: Confusion matrix
-- `val_batch*.jpg`: Validation examples
+- **Best Model**: Tự động save model có mAP50 cao nhất (`best.pt`)
+- **Last Model**: Save model cuối cùng (`last.pt`)
+- **Additional Files**: Training curves, confusion matrix, validation examples
 
 ### 7.5. Training Curves và Monitoring
 
-**Metrics được theo dõi:**
-
-1. **Loss Curves:**
-   - Train/Val Box Loss
-   - Train/Val Class Loss
-   - Train/Val DFL Loss
-   - Total Loss
-
-2. **mAP Curves:**
-   - mAP50 (primary)
-   - mAP50-95
-
-3. **Precision/Recall/F1 Curves:**
-   - Precision
-   - Recall
-   - F1-Score (harmonic mean của Precision và Recall)
+**Metrics được theo dõi:** Loss curves (Box, Class, DFL, Total), mAP curves (mAP50, mAP50-95), và Precision/Recall/F1 curves.
 
 **Phân tích Training:**
 - Loss giảm dần và hội tụ
 - mAP50 tăng dần trong quá trình training
 - Validation metrics tương đối ổn định (không overfitting nghiêm trọng)
 
-**Kết quả cuối cùng (Epoch 120):**
-- mAP50: 0.6601
-- mAP50-95: 0.3895
-- Precision: 0.7283
-- Recall: 0.5933
-- F1-Score: 0.6540
+*Kết quả cuối cùng được trình bày chi tiết trong [Chương 8.1.1](#811-overall-metrics).*
 
 ---
 
@@ -1132,19 +1106,12 @@ Sau 120 epochs training trên balanced dataset với YOLOv8s, mô hình đạt �
 
 #### 8.2.1. Inference Speed
 
-**Per Image Speed:**
-- **Preprocess**: 0.6ms
-- **Inference**: 3.8ms
-- **Postprocess**: 0.9ms
-- **Total**: ~5.3ms per image
-
-**Throughput:**
-- Với batch size 1: ~189 FPS (lý thuyết)
-- Với batch size 28: ~5,283 images/second
+**Per Image Speed:** ~5.3ms per image (preprocess: 0.6ms, inference: 3.8ms, postprocess: 0.9ms). *Chi tiết throughput và batch processing được trình bày trong [Chương 7.4.1](#741-training-speed).*
 
 **Real-time Camera Performance:**
 - **Frame Rate**: ~10-15 FPS (với frame skipping và image compression)
 - **Latency**: ~100-200ms per frame (bao gồm network, processing, display)
+- **Throughput**: ~189 FPS lý thuyết với batch size 1
 - **Memory Usage**: ~2-3GB GPU memory
 
 #### 8.2.2. Tracking Performance
@@ -1183,7 +1150,7 @@ Sau 120 epochs training trên balanced dataset với YOLOv8s, mô hình đạt �
 - **Utilization**: ~80-90% trong training, ~40-60% trong inference
 
 **CPU:**
-- **Data Loading**: 20 workers, ~50-70% CPU usage
+- **Data Loading**: 4 workers, ~50-70% CPU usage
 - **Inference**: Single-threaded, ~10-20% CPU usage
 
 **Memory:**
@@ -1412,10 +1379,9 @@ Màn hình chính cung cấp 2 lựa chọn:
 #### 10.1.1. Thành công
 
 **1. Pipeline xử lý dữ liệu hiệu quả:**
-- Smart sampling algorithm thành công trong việc chọn ảnh chất lượng cao
+- Smart sampling algorithm thành công trong việc chọn ảnh chất lượng cao (chi tiết trong [Chương 6.2.2](#622-bước-2-smart-sampling))
 - Dataset được balanced từ 321:1 xuống ~1:1
 - Augmentation strategy phù hợp cho classes thiếu
-- Tổng thời gian xử lý: ~20 phút cho 82k images
 
 **2. Hệ thống web application hoàn chỉnh:**
 - Real-time camera detection hoạt động ổn định
@@ -1541,67 +1507,36 @@ Màn hình chính cung cấp 2 lựa chọn:
 
 #### 10.3.2. Model Size Comparison
 
-**Đề xuất so sánh (chưa thực hiện):**
+**So sánh đề xuất (chưa thực hiện):**
 
 | Model | Parameters | Dataset Size | Expected mAP50 |
 |-------|-----------|--------------|----------------|
 | YOLOv8n | 3.2M | 10k | 0.70-0.75 (ước tính) |
 | YOLOv8s | 11.2M | 10k | 0.6601 (thực tế) |
-| YOLOv8s | 11.2M | 20k+ | 0.75+ (ước tính) |
 
-**Kết luận:**
-- YOLOv8n có thể phù hợp hơn cho dataset 10k images
-- YOLOv8s cần dataset lớn hơn để phát huy capacity
+**Kết luận:** YOLOv8n (3.2M params) có thể phù hợp hơn cho dataset 10k images so với YOLOv8s (11.2M params) đã sử dụng. YOLOv8s cần dataset lớn hơn (20k+ images) để phát huy đầy đủ capacity. *Đề xuất thử nghiệm được trình bày trong [Chương 11.4.1](#1141-model-và-training).*
 
 ### 10.4. Lessons Learned
 
-#### 10.4.1. Model Size vs Dataset Size
+Dựa trên quá trình nghiên cứu và phân tích kết quả, các bài học quan trọng được rút ra:
 
-**Lesson:**
-- Model size phải phù hợp với dataset size
-- Rule of thumb: ~100-1000 samples per parameter
-- YOLOv8s (11.2M params) cần ~1-10M samples để optimal
-- Dataset 10k images → nên dùng YOLOv8n (3.2M params)
+**1. Model Size vs Dataset Size:**
+- Model size phải phù hợp với dataset size (rule of thumb: ~100-1000 samples per parameter)
+- YOLOv8s (11.2M params) có thể quá lớn cho dataset 10k images → nên thử YOLOv8n (3.2M params)
+- Không phải model lớn hơn luôn tốt hơn, cần cân bằng giữa capacity và overfitting risk
 
-**Application:**
-- Khi chọn model, cần xem xét dataset size
-- Không phải model lớn hơn luôn tốt hơn
-- Cần balance giữa capacity và overfitting risk
-
-#### 10.4.2. Balanced Dataset không đảm bảo cải thiện
-
-**Lesson:**
+**2. Balanced Dataset không đảm bảo cải thiện:**
 - Balanced dataset là cần thiết nhưng không đủ
-- Cần kết hợp với model size phù hợp
-- Cần hyperparameters tối ưu
-- Cần đủ dữ liệu cho mỗi class
-
-**Application:**
+- Cần kết hợp với model size phù hợp, hyperparameters tối ưu, và đủ dữ liệu cho mỗi class
 - Balanced dataset là bước đầu, không phải giải pháp cuối cùng
-- Cần xem xét nhiều yếu tố: model, hyperparameters, augmentation
 
-#### 10.4.3. Precision vs Recall Trade-off
+**3. Precision vs Recall Trade-off:**
+- Model có thể ưu tiên Precision hoặc Recall tùy vào loss weights và thresholds
+- Tùy application mà chọn trade-off phù hợp (Surveillance: Recall cao, Medical: Precision cao)
 
-**Lesson:**
-- Model có thể ưu tiên Precision hoặc Recall
-- Cần điều chỉnh loss weights và thresholds
-- Tùy application mà chọn trade-off phù hợp
-
-**Application:**
-- Surveillance: Cần Recall cao (không bỏ sót)
-- Medical: Cần Precision cao (ít false positives)
-- General: Cần balance cả hai
-
-#### 10.4.4. Quality Score Algorithm
-
-**Lesson:**
-- Smart sampling với quality score hiệu quả
-- Chọn ảnh tốt quan trọng hơn số lượng
-- Quality > Quantity trong một số trường hợp
-
-**Application:**
-- Khi có dataset lớn, nên chọn subset chất lượng cao
-- Quality score có thể customize cho từng application
+**4. Quality Score Algorithm:**
+- Smart sampling với quality score hiệu quả trong việc chọn ảnh chất lượng cao
+- Chọn ảnh tốt quan trọng hơn số lượng (Quality > Quantity trong một số trường hợp)
 
 ---
 
@@ -1612,17 +1547,17 @@ Màn hình chính cung cấp 2 lựa chọn:
 Nghiên cứu này đã xây dựng thành công một hệ thống nhận diện đối tượng hoàn chỉnh với các thành phần chính:
 
 **1. Pipeline xử lý dữ liệu thông minh:**
-- Phát triển thuật toán smart sampling dựa trên quality score
+- Phát triển thuật toán smart sampling dựa trên quality score (chi tiết trong [Chương 6.2.2](#622-bước-2-smart-sampling))
 - Cân bằng dataset từ 321:1 xuống ~1:1
 - Giảm dataset từ 82k xuống 10k images nhưng vẫn giữ chất lượng
 
 **2. Training mô hình YOLOv8s:**
-- Tối ưu hóa cho GPU Tesla P100
+- Tối ưu hóa cho GPU Tesla P100 (chi tiết trong [Chương 7](#7-huấn-luyện-mô-hình))
 - Training 120 epochs trong 8 giờ
-- Đạt được mAP50 = 66.01%, Precision = 72.83%, Recall = 59.33%, F1-Score = 65.40%
+- Đạt được mAP50 = 66.01%, Precision = 72.83%, Recall = 59.33%, F1-Score = 65.40% (chi tiết trong [Chương 8](#8-kết-quả))
 
 **3. Hệ thống web application:**
-- Real-time camera detection với tracking
+- Real-time camera detection với tracking (chi tiết trong [Chương 5](#5-thiết-kế-hệ-thống) và [Chương 9](#9-demo--ứng-dụng))
 - Image upload và detection
 - Audio feedback bằng tiếng Việt
 - UI/UX responsive và user-friendly
@@ -1636,24 +1571,24 @@ Mặc dù kết quả mAP50 thấp hơn baseline (-4.7%), nghiên cứu đã cun
 ### 11.2. Đóng góp
 
 **1. Smart Sampling Algorithm:**
-- Quality score dựa trên số classes, bbox area, và vị trí
+- Quality score dựa trên số classes, bbox area, vị trí, và aspect ratio (chi tiết trong [Chương 6.2.2](#622-bước-2-smart-sampling))
 - Hiệu quả trong việc chọn ảnh chất lượng cao
 - Có thể áp dụng cho các dataset khác
 
 **2. Tối ưu hóa Training cho P100:**
-- Auto-detection GPU và tối ưu batch size
+- Auto-detection GPU và tối ưu batch size (chi tiết trong [Chương 7.2](#72-tối-ưu-hóa-cho-gpu-p100))
 - Mixed Precision Training (AMP)
 - Workers và cache optimization
 
 **3. Hệ thống Application hoàn chỉnh:**
-- Real-time tracking với DeepSORT
-- Audio feedback cho accessibility
-- Performance optimization (frame skipping, compression)
+- Real-time tracking với DeepSORT (chi tiết trong [Chương 5.3.3](#533-videotracker-class))
+- Audio feedback cho accessibility (chi tiết trong [Chương 5.4.2](#542-audio-service))
+- Performance optimization (frame skipping, compression) (chi tiết trong [Chương 5.4.3](#543-performance-optimization))
 
 **4. Phân tích và Insights:**
-- Mối quan hệ model size vs dataset size
-- Precision-Recall trade-off analysis
-- Per-class performance analysis
+- Mối quan hệ model size vs dataset size (chi tiết trong [Chương 10.2.1](#1021-tại-sao-map50-thấp-hơn-baseline) và [Chương 10.4](#104-lessons-learned))
+- Precision-Recall trade-off analysis (chi tiết trong [Chương 8.1.1](#811-overall-metrics))
+- Per-class performance analysis (chi tiết trong [Chương 8.1.3](#813-per-class-performance))
 
 ### 11.3. Hạn chế
 
